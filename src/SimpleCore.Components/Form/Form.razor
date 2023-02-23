@@ -1,0 +1,32 @@
+﻿@typeparam TModel
+<EditForm @ref="@FormReference" Model="Model" OnValidSubmit="OnValidSubmit" AdditionalAttributes="@AdditionalAttributes">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @ChildContent
+</EditForm>
+
+@code {
+    [Parameter]
+    public TModel Model { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)] 
+    public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    public EditForm FormReference { get; set; }
+
+    public async Task Submit()
+    {
+        var valid = FormReference.EditContext.Validate();
+        if (valid)
+        {
+            await OnValidSubmit.InvokeAsync();
+        }
+    }
+}

@@ -1,0 +1,105 @@
+﻿@typeparam TValue
+@using System.Linq.Expressions
+
+<div class="row @(LabelInline ? "mb-sm-3" : "")">
+    @if (LabelInline)
+    {
+        <label class="col-form-label text-sm-end inline">@Label</label>
+    }
+    else
+    {
+        <label class="col-form-label">@Label</label>
+    }
+
+    @if (InputType == "Content")
+    {
+        <div class="col-12 col-sm d-flex align-items-center input-container">
+            @ChildContent
+        </div>
+    }
+    else if (InputType == "ValueOnly")
+    {
+        <div class="col-12 col-sm d-flex align-items-center input-container">
+            <span class="text-muted">@Value?.ToString()</span>
+        </div>
+    }
+    else if (InputType == "Checkbox")
+    {
+        <div class="col-12 col-sm d-flex align-items-center input-container">
+            <div class="form-check form-switch">
+                <FormInput Value="@Value" ValueChanged="@ValueChanged" ValueExpression="@ValueExpression" InputType="@InputType" Disabled="@Disabled"/>
+            </div>
+        </div>
+    }
+    else if (InputType == "Select")
+    {
+        <div class="col-12 col-sm d-flex align-items-center input-container">
+            <InputSelect Value="@Value" ValueChanged="@ValueChanged" ValueExpression="@ValueExpression" class="form-select">
+                @SelectOptions
+            </InputSelect>
+        </div>
+    }
+    else
+    {
+        <div class="col-12 col-sm input-container">
+            <FormInput Value="@Value" ValueChanged="@ValueChanged" ValueExpression="@ValueExpression" InputType="@InputType" Disabled="@Disabled"  Mask="@Mask" MaskReverse="@MaskReverse"/>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public TValue Value { get; set; }
+
+    [Parameter]
+    public EventCallback<TValue> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<TValue>> ValueExpression { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment SelectOptions { get; set; }
+
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public bool LabelInline { get; set; } = true;
+
+    [Parameter]
+    public string InputType { get; set; }
+
+    [Parameter]
+    public string Mask { get; set; }
+
+    [Parameter]
+    public bool MaskReverse { get; set; }
+
+    [Parameter]
+    public bool Disabled{ get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(InputType))
+        {
+
+            if (typeof(TValue) == typeof(bool))
+            {
+                InputType = "Checkbox";
+            }
+            else if (typeof(TValue).IsEnum)
+            {
+                InputType = "Select";
+            }
+            else
+            {
+                InputType = "Text";
+            }
+        }
+
+        await base.OnParametersSetAsync();
+    }
+}

@@ -1,0 +1,13 @@
+﻿<button class="nav-link @(Active ? "active" : "")" id="tab-@Target" data-bs-toggle="tab" data-bs-target="#content-@Target" type="button" role="tab">@ChildContent</button>
+
+@code {
+    [Parameter]
+    public string Target{ get; set; }
+
+    [Parameter]
+    public bool Active { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+}

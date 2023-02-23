@@ -1,0 +1,89 @@
+﻿@using System.Text
+@inject NavigationManager Navigation
+
+<nav aria-label="...">
+    <ul class="pagination">
+        @if (PageCount > 1)
+        {
+            <li class="page-item @(IsFirstPage ? "disabled" : "")">
+                <button class="page-link" @onclick="@(() => PageClicked(1))">Primeira</button>
+            </li>
+
+            @for (int i = 0; i < LinkCount; i++)
+            {
+                int current = LinkInit + i;
+                if (current == Page)
+                {
+                    <li class="page-item active">
+                        <button class="page-link" @onclick="@(() => PageClicked(current))">@current</button>
+                    </li>
+                }
+                else if (current <= PageCount)
+                {
+                    <li class="page-item">
+                        <button class="page-link" @onclick="@(() => PageClicked(current))">@current</button>
+                    </li>
+                }
+            }
+
+            <li class="page-item @(IsLastPage ? "disabled": "")">
+                <button class="page-link" @onclick="@(() => PageClicked(PageCount))">Última</button>
+            </li>
+        }
+        @if (Count > 0)
+        {
+            <li class="page-item disabled">
+                <button class="page-link">Total: @Count</button>
+            </li>
+        }
+    </ul>
+</nav>
+
+@code
+{
+    [Parameter] public int Page { get; set; }
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    [Parameter] public int Limit { get; set; }
+    [Parameter] public EventCallback<int> LimitChanged { get; set; }
+
+    [Parameter] public int Count { get; set; }
+    [Parameter] public EventCallback<int> CountChanged { get; set; }
+
+    string BaseUrl { get; set; }
+
+    // Configuration Variables
+    int LinkCount = 6;
+    int LinkInit = 1;
+
+
+    // State variables
+    bool IsFirstPage;
+    bool IsLastPage;
+    int PageCount;
+
+    protected override void OnParametersSet()
+    {
+        // Avoid zero
+        Limit = Limit == 0 ? 10 : Limit;
+        Page = Page == 0 ? 1 : Page;
+
+        // Calc page count
+        var pageCountFactor = (decimal)Count / (decimal)Limit;
+        PageCount = pageCountFactor % 1 != 0 || pageCountFactor < 1
+            ? (int)(pageCountFactor - (pageCountFactor % 1) + 1)
+            : (int)pageCountFactor;
+
+        IsFirstPage = Page == 1;
+        IsLastPage = Page == PageCount;
+        LinkInit = Page - LinkCount / 2 <= 1 ? 1 : Page - LinkCount / 2;
+
+        // Get Base url
+        BaseUrl = Navigation.BaseUri;
+    }
+
+    protected async Task PageClicked(int page)
+    {
+        await PageChanged.InvokeAsync(page);
+    }
+}

@@ -1,0 +1,61 @@
+﻿@using System.Linq.Expressions
+@using System.Globalization;
+@using System.Diagnostics.CodeAnalysis
+
+<div class="row @(LabelInline ? "mb-sm-3" : "")">
+    @if (LabelInline)
+    {
+        <label class="col-form-label text-sm-end inline">@Label</label>
+    }
+    else
+    {
+        <label class="col-form-label">@Label</label>
+    }
+
+    <div class="col-12 col-sm d-flex align-items-center input-container">
+        <div class="input-group me-2">
+          <span class="input-group-text">De</span>
+          <FormInput TValue="DateTime" Value="From" ValueChanged="OnFromChanged" ValueExpression="FromExpression" InputType="Time"></FormInput>
+        </div>
+        <div class="input-group">
+          <span class="input-group-text">Até</span>
+          <FormInput TValue="DateTime" Value="To" ValueChanged="OnToChanged" ValueExpression="ToExpression" InputType="Time"></FormInput>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public bool LabelInline { get; set; } = true;
+
+    [Parameter]
+    public DateTime From { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTime> FromChanged{ get; set; }
+
+    [Parameter]
+    public Expression<Func<DateTime>> FromExpression{ get; set; }
+
+    [Parameter]
+    public DateTime To { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTime> ToChanged{ get; set; }
+
+    [Parameter]
+    public Expression<Func<DateTime>> ToExpression{ get; set; }
+
+    private async Task OnFromChanged(DateTime date)
+    {
+        await FromChanged.InvokeAsync(new DateTime(From.Year, From.Month, From.Day, date.Hour, date.Minute, date.Second));
+    }
+
+    private async Task OnToChanged(DateTime date)
+    {
+        await ToChanged.InvokeAsync(new DateTime(To.Year, To.Month, To.Day, date.Hour, date.Minute, date.Second));
+    }
+}

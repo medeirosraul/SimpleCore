@@ -1,0 +1,14 @@
+﻿<div class="tab-pane fade @(Active ? "show active" : "")" id="content-@Id" role="tabpanel">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public string Id{ get; set; }
+
+    [Parameter]
+    public bool Active{ get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

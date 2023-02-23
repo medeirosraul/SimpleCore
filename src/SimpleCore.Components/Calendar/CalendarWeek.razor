@@ -1,0 +1,62 @@
+﻿@using SimpleStore.Components.Calendar
+<div class="col-12 d-flex mb-2">
+    <h3>
+        <button class="btn btn-light" type="button" @onclick="@(async () => await AddWeek(-1))"><span class="iconify" data-icon="fluent:arrow-left-20-regular" data-width="20" data-height="20"></span></button>
+        <button class="btn btn-light" type="button" @onclick="@(async () => await AddWeek(1))"><span class="iconify" data-icon="fluent:arrow-right-20-regular" data-width="20" data-height="20"></span></button>
+        @BaseDate.ToString("MMMM 'de' yyyy")
+    </h3>
+    <div class="ms-2 ps-2 border-start">
+        <button type="button" class="btn btn-light" @onclick="@(async () => await OnVisualizationChange(CalendarVisualization.Month))">Mês</button>
+        <button type="button" class="btn btn-light" @onclick="@(async () => await OnVisualizationChange(CalendarVisualization.Week))">Semana</button>
+        <button type="button" class="btn btn-light" @onclick="@(async () => await OnVisualizationChange(CalendarVisualization.Day))">Dia</button>
+    </div>
+</div>
+<hr />
+<div class="week col">
+    <div class="row g-0">
+        @for(var day = 0; day < 7; day++)
+        {
+            var date = _firstDate.AddDays(day);
+            <CalendarDay Date="date" Visualization="Visualization"></CalendarDay>
+        }
+    </div>
+</div>
+@code {
+    private DateTime _firstDate;
+
+    [Parameter]
+    public DateTime BaseDate { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTime> BaseDateChanged { get; set; }
+
+    [Parameter]
+    public CalendarVisualization Visualization { get; set; }
+
+    [Parameter]
+    public EventCallback<CalendarVisualization> VisualizationChanged { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        CalculateParameters();
+    }
+
+    private async Task AddWeek(int i)
+    {
+        BaseDate = BaseDate.AddDays(i * 7);
+        CalculateParameters();
+
+        await BaseDateChanged.InvokeAsync(BaseDate);
+    }
+
+    private async Task OnVisualizationChange(CalendarVisualization visualization)
+    {
+        Visualization = visualization;
+        await VisualizationChanged.InvokeAsync(visualization);
+    }
+
+    private void CalculateParameters()
+    {
+        _firstDate = BaseDate.AddDays((int)BaseDate.DayOfWeek * -1);
+    }
+}

@@ -1,0 +1,55 @@
+﻿@using SimpleCore.Components.Util
+@using SimpleCore.Types
+
+@typeparam TModel
+
+<table class="table table-hover">
+    @if (Head != null)
+    {
+        <thead>
+            @Head
+        </thead>
+    }
+    @if (Context != null && Context.Count > 0)
+    {
+        <tbody>
+            @foreach (var item in Context)
+            {
+                @RowTemplate(item)
+            }
+        </tbody>
+        <tfoot>
+            <Pagination PageChanged="OnPageChange" Page="Context.PageIndex" Limit="Context.PageSize" Count="Context.TotalCount"/>
+        </tfoot>
+    }
+    else if (Context == null)
+    {
+        <tr>
+            <td colspan="100">
+                Carregando...
+            </td>
+        </tr>
+    }
+    else
+    {
+        <tr>
+            <td colspan="100">
+                Não há itens nesta lista.
+            </td>
+        </tr>
+    }
+</table>
+
+@code {
+    [Parameter]
+    public PagedList<TModel> Context { get; set; }
+
+    [Parameter]
+    public RenderFragment Head { get; set; }
+
+    [Parameter]
+    public RenderFragment<TModel> RowTemplate { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPageChange{ get; set; }
+}

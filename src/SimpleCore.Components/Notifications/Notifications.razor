@@ -1,0 +1,54 @@
+﻿<div class="notification-container position-absolute top-0 start-50 translate-middle-x p-3">
+    @if (NotificationsHub.Notifications != null && NotificationsHub.Notifications.Count > 0)
+    {
+        foreach (var notification in NotificationsHub.Notifications)
+        {
+            <div class="toast show @GetToastStyle(notification)">
+                <div class="toast-body">
+                    @notification.Message
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public NotificationsHub NotificationsHub { get; set; }
+
+    [Parameter]
+    public EventCallback<NotificationsHub> NotificationsHubChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        NotificationsHub = new NotificationsHub();
+        NotificationsHub.OnNotificationsChange += async () => await InvokeAsync(() => NotificationsChanged());
+        await NotificationsHubChanged.InvokeAsync(NotificationsHub);
+    }
+
+    private async Task NotificationsChanged()
+    {
+        await NotificationsHubChanged.InvokeAsync(NotificationsHub);
+    }
+
+    private string GetToastStyle(Notification notification)
+    {
+        switch (notification.Type)
+        {
+            case NotificationType.Primary:
+                return "bg-primary text-white";
+            case NotificationType.Secondary:
+                return "bg-secondary";
+            case NotificationType.Success:
+                return "bg-success text-white";
+            case NotificationType.Danger:
+                return "bg-danger text-white";
+            case NotificationType.Warning:
+                return "bg-warning";
+            case NotificationType.Info:
+                return "bg-info";
+            default:
+                return "";
+        }
+    }
+}

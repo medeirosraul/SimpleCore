@@ -1,0 +1,28 @@
+﻿<div class="panel mb-3">
+    <div class="panel-header d-flex align-content-center justify-content-between">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <h3 class="mb-4">@Title</h3>
+        }
+        @if (HeaderActions != null)
+        {
+            <div class="d-flex">
+                @HeaderActions
+            </div>
+        }
+    </div>
+    <div class="panel-body">
+        @Content
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public RenderFragment HeaderActions { get; set; }
+
+    [Parameter]
+    public RenderFragment Content { get; set; }
+}

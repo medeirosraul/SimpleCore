@@ -1,0 +1,143 @@
+﻿@using System.Globalization
+@using SimpleStore.Components.Calendar
+<div class="col-12 d-flex mb-2">
+    <h3>
+        <button class="btn btn-light" type="button" @onclick="@(async () => await AddMonth(-1))"><span class="iconify" data-icon="fluent:arrow-up-20-regular" data-width="20" data-height="20"></span></button>
+        <button class="btn btn-light" type="button" @onclick="@(async () => await AddMonth(1))"><span class="iconify" data-icon="fluent:arrow-down-20-regular" data-width="20" data-height="20"></span></button>
+        @BaseDate.ToString("MMMM 'de' yyyy")
+    </h3>
+    <div class="ms-2 ps-2 border-start">
+        <button type="button" class="btn btn-light" @onclick="@(async () => await OnVisualizationChange.InvokeAsync(CalendarVisualization.Month))">Mês</button>
+        <button type="button" class="btn btn-light" @onclick="@(async () => await OnVisualizationChange.InvokeAsync(CalendarVisualization.Week))">Semana</button>
+        <button type="button" class="btn btn-light" @onclick="@(async () => await OnVisualizationChange.InvokeAsync(CalendarVisualization.Day))">Dia</button>
+    </div>
+</div>
+<hr />
+<div class="month col @MonthClasses">
+    <div class="row g-0 text-muted d-md-none">
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Sunday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Monday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Tuesday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Wednesday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Thursday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Friday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetShortestDayName(DayOfWeek.Saturday)</div>
+    </div>
+    <div class="row g-0 text-muted d-none d-md-flex">
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Sunday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Monday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Tuesday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Wednesday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Thursday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Friday)</div>
+        <div class="col ps-2">@DateTimeFormatInfo.CurrentInfo.GetDayName(DayOfWeek.Saturday)</div>
+    </div>
+    @for (var week = 0; week < 5; week++)
+    {
+        <div class="row g-0">
+            @for (var day = 0; day < 7; day++)
+            {
+                var date = _firstDate.AddDays((week * 7) + day);
+                <CalendarDay Date="date" OnClick="DateClicked" Checked="IsChecked(date)" Marked="IsMarked(date)"></CalendarDay>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private DateTime _firstDate;
+
+    [Parameter]
+    public bool EnableAllDates { get; set; } = true;
+
+    [Parameter]
+    public bool EnableCheckedDates { get; set; } = false;
+
+    [Parameter]
+    public bool EnableMarkedDates { get; set; } = false;
+
+    [Parameter]
+    public string MonthClasses { get; set; }
+
+
+    [Parameter]
+    public DateTime BaseDate { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTime> BaseDateChanged { get; set; }
+
+    [Parameter]
+    public ICollection<DateTime> MarkedDates { get; set; } = new List<DateTime>();
+
+    [Parameter]
+    public ICollection<DateTime> SelectedDates { get; set; } = new List<DateTime>();
+
+    [Parameter]
+    public EventCallback<ICollection<DateTime>> SelectedDatesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<CalendarVisualization> OnVisualizationChange { get; set; }
+
+
+
+    protected override void OnParametersSet()
+    {
+        CalculateParameters();
+    }
+
+    private async Task DateClicked(DateTime date)
+    {
+        var exists = SelectedDates.Any(p => p.Date == date.Date);
+
+        if (exists)
+            SelectedDates.Remove(date);
+        else
+        {
+            SelectedDates.Add(date);
+            SelectedDates = SelectedDates.OrderBy(p => p.Date).ToList();
+        }
+
+        await SelectedDatesChanged.InvokeAsync(SelectedDates);
+    }
+
+    private async Task AddMonth(int i)
+    {
+        BaseDate = BaseDate.AddMonths(i);
+        CalculateParameters();
+
+        await BaseDateChanged.InvokeAsync(BaseDate);
+    }
+
+    private bool IsEnabled (DateTime date)
+    {
+        var enabled = false;
+
+        if (EnableAllDates)
+            enabled = true;
+
+        if (EnableCheckedDates && enabled == false)
+            enabled = IsChecked(date);
+
+        if (EnableMarkedDates && enabled == false)
+            enabled = IsMarked(date);
+
+        return enabled;
+    }
+
+    private bool IsChecked(DateTime date)
+    {
+        return SelectedDates.Any(p => p.Date == date.Date);
+    }
+
+    private bool IsMarked(DateTime date)
+    {
+        return MarkedDates.Any(p => p.Date == date.Date);
+    }
+
+    private void CalculateParameters()
+    {
+        var firstDayInMonth = new DateTime(BaseDate.Year, BaseDate.Month, 1);
+
+        _firstDate = firstDayInMonth.AddDays((int)firstDayInMonth.DayOfWeek * -1);
+    }
+}

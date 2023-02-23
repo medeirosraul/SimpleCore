@@ -1,0 +1,77 @@
+﻿@using System.Linq.Expressions
+@using System.Globalization;
+@using System.Diagnostics.CodeAnalysis
+@typeparam TValue
+@inherits InputBase<TValue>
+
+@if (InputType == "Text")
+{
+    <input class="form-control"
+       value="@CurrentValueAsString"
+       name="@FieldIdentifier.FieldName"
+       @onchange="@(_value => CurrentValueAsString = _value.Value.ToString())"
+       @attributes="AdditionalAttributes" data-mask="@Mask" data-mask-reverse="@MaskReverse"/>
+}
+else if (InputType == "Checkbox")
+{
+    <input name="@FieldIdentifier.FieldName" class="form-check-input" type="checkbox" @bind="CurrentValue" />
+}
+else if (InputType == "Time")
+{
+    <input class="form-control"
+       type="time"
+       name="@FieldIdentifier.FieldName"
+       value="@CurrentValueAsString"
+       @onchange="@(_value => CurrentValueAsString = _value.Value.ToString())"
+       @attributes="AdditionalAttributes" disabled="@Disabled"/>
+}
+
+@code {
+    [Parameter]
+    public string InputType { get; set; }
+
+    [Parameter]
+    public string Mask { get; set; }
+
+    [Parameter]
+    public bool MaskReverse { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(InputType))
+        {
+            InputType = "Text";
+        }
+
+        await base.OnParametersSetAsync();
+        
+    }
+
+
+    protected override bool TryParseValueFromString(string value, [MaybeNull] out TValue result, [NotNullWhen(false)] out string validationErrorMessage)
+    {
+        if (BindConverter.TryConvertTo<TValue>(value, CultureInfo.CurrentCulture, out result))
+        {
+            validationErrorMessage = null;
+            return true;
+        }
+        else
+        {
+            validationErrorMessage = string.Format("Não é possível realizar a conversão do valor.", DisplayName ?? FieldIdentifier.FieldName);
+            return false;
+        }
+    }
+
+    protected override string FormatValueAsString([AllowNull] TValue value)
+    {
+        if(InputType == "Time")
+        {
+            return (value as DateTime?).Value.ToString("HH:mm");
+        }
+
+        return base.FormatValueAsString(value);
+    }
+}
