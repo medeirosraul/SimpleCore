@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SimpleCore.Abstractions;
 using SimpleCore.Abstractions.Identity;
+using SimpleCore.Contexts;
 using SimpleCore.Data;
 using SimpleCore.Data.Options;
+using SimpleCore.Identity;
 using SimpleCore.Services;
 using SimpleCore.Services.Identity;
 
@@ -17,9 +19,12 @@ namespace SimpleCore
             return services;
         }
 
-        public static IServiceCollection AddSimpleCoreIdentity<TKey>(this IServiceCollection services)
+        public static IServiceCollection AddSimpleCoreIdentity<TIdentity, TKey>(this IServiceCollection services)
+            where TIdentity : Identity<TKey>, new()
         {
-            services.AddScoped(typeof(ISimpleIdentityService<>), typeof(SimpleIdentityService<>));
+            services.AddScoped<IIdentityService<TIdentity, TKey>, IdentityService<TIdentity, TKey>>();
+            services.AddScoped<IIdentityContext<TIdentity, TKey>, IdentityContext<TIdentity, TKey>>();
+
             return services;
         }
 

@@ -26,12 +26,13 @@ namespace SimpleCore.Data
             base.OnModelCreating(builder);
         }
 
-        protected void BuildSimpleIdentity(ModelBuilder builder)
+        protected void BuildIdentity<TIdentity>(ModelBuilder builder)
+            where TIdentity : Identity<TKey>
         {
-            builder.Entity<SimpleIdentity<TKey>>()
+            builder.Entity<TIdentity>()
                 .ToTable("Identity");
 
-            builder.Entity<SimpleIdentityProvided<TKey>>()
+            builder.Entity<IdentityProvided<TKey>>()
                 .ToTable("IdentityProvided");
         }
 
