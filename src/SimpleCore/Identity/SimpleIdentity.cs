@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using SimpleCore.Entities;
 
 namespace SimpleCore.Identity
 {
-    public class SimpleUser : IdentityUser
+    public class SimpleIdentity<TKey> : Entity<TKey>
     {
+
     }
 }

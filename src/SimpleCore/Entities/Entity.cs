@@ -1,13 +1,14 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-
-namespace SimpleCore.Entities
+﻿namespace SimpleCore.Entities
 {
+    /// <summary>
+    /// A base entity.
+    /// </summary>
+    /// <typeparam name="TKey">Type of Entity Key.</typeparam>
     public abstract class Entity<TKey>
     {
         /// <summary>
         /// Entity identificator.
         /// </summary>
-        [BsonId]
         public virtual TKey Id { get; set; } = default!;
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SimpleCore.Entities;
+using SimpleCore.Identity;
 
 namespace SimpleCore.Data
 {
@@ -18,9 +19,20 @@ namespace SimpleCore.Data
         {
             // Ignore base entity
             builder.Ignore<Entity<TKey>>();
+            builder.Ignore<UserEntity<TKey>>();
+            builder.Ignore<TenantEntity<TKey>>();
 
             // Base
             base.OnModelCreating(builder);
+        }
+
+        protected void BuildSimpleIdentity(ModelBuilder builder)
+        {
+            builder.Entity<SimpleIdentity<TKey>>()
+                .ToTable("Identity");
+
+            builder.Entity<SimpleIdentityProvided<TKey>>()
+                .ToTable("IdentityProvided");
         }
 
         public async Task BeginTransaction()
