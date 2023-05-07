@@ -9,6 +9,7 @@ namespace SimpleCore.Contexts
         where TIdentity : Identity<TKey>, new()
     {
         Task<TIdentity> GetUserInfo();
+        Task<TIdentity> UpdateUserInfo(string userName, string email);
     }
 
     public class IdentityContext<TIdentity, TKey> : IIdentityContext<TIdentity, TKey>
@@ -34,7 +35,7 @@ namespace SimpleCore.Contexts
             if (httpContextIdentity == null)
                 throw new Exception("No identity provided.");
 
-            var sub = httpContextIdentity.FindFirstValue("sub");
+            var sub = httpContextIdentity.FindFirstValue(ClaimTypes.NameIdentifier);
             var issuer = httpContextIdentity.FindFirstValue("iss");
 
             if (string.IsNullOrEmpty(sub) || string.IsNullOrEmpty(issuer))
@@ -43,6 +44,23 @@ namespace SimpleCore.Contexts
             var identityProvided = new IdentityProvided<TKey>(sub, issuer);
 
             return _identityService.GetIdentityForIdentityProvided(identityProvided);
+        }
+
+        public async Task<TIdentity> UpdateUserInfo(string userName, string email)
+        {
+            var identity = await GetUserInfo();
+            
+            identity.Email = email;
+            
+            if (string.IsNullOrEmpty(identity.UserName))
+                identity.UserName = userName;
+            
+            if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(email))
+                identity.IsValidUserInfo = true;
+
+            await _identityService.Update(identity);
+
+            return identity;
         }
     }
 }

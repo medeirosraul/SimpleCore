@@ -47,9 +47,54 @@ namespace SimpleCore.Services
             return Context.SaveChangesAsync();
         }
 
+        public Task UpdateAndSaveChanges()
+        {
+            var entries = Context.ChangeTracker.Entries<TEntity>().Where(x => x.State == EntityState.Modified).ToList();
+
+            if (entries.Any())
+            {
+                foreach (var entry in entries)
+                {
+                    var entity = entry.Entity;
+                    entity.ModifiedAt = DateTime.Now;
+                }
+            }
+
+            return Context.SaveChangesAsync();
+        }
+
+        public Task Update(TEntity entity)
+        {
+            // Stamp
+            entity.ModifiedAt = DateTime.Now;
+
+            // Update
+            Context.Update(entity);
+
+            // Save
+            return Context.SaveChangesAsync();
+        }
+
         public virtual Task<TEntity?> GetById(TKey id, bool tracking = false)
         {
             return AsQueryable(tracking).FirstOrDefaultAsync(x => x.Id!.Equals(id));
+        }
+
+        public virtual Task<TEntity?> GetById(string id, bool tracking = false)
+        {
+
+            if (typeof(TKey) == typeof(Guid))
+            {
+                return AsQueryable(tracking).FirstOrDefaultAsync(x => x.Id!.Equals(Guid.Parse(id)));
+            } 
+            else if (typeof(TKey) == typeof(string))
+            {
+                return AsQueryable(tracking).FirstOrDefaultAsync(x => x.Id!.Equals(id));
+            }
+            else
+            {
+                throw new Exception("Invalid ID type.");
+            }
         }
 
         public virtual Task<PagedList<TEntity>> Get(bool tracking = false)
@@ -57,11 +102,9 @@ namespace SimpleCore.Services
             return Get(null, false);
         }
 
-        public virtual Task<PagedList<TEntity>> Get(IQueryable<TEntity>? query, bool tracking = false)
+        public virtual Task<PagedList<TEntity>> Get(int page, int limit, bool tracking = false)
         {
-            query ??= PrepareQuery(false, tracking);
-
-            return Get(0, 0, query, tracking);
+            return Get(page, limit, null, tracking);
         }
 
         public virtual async Task<PagedList<TEntity>> Get(int page, int limit, IQueryable<TEntity>? query, bool tracking = false)
@@ -94,5 +137,13 @@ namespace SimpleCore.Services
 
             return result;
         }
+
+        public virtual Task<PagedList<TEntity>> Get(IQueryable<TEntity>? query, bool tracking = false)
+        {
+            query ??= PrepareQuery(false, tracking);
+
+            return Get(0, 0, query, tracking);
+        }
+
     }
 }

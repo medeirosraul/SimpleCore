@@ -28,7 +28,10 @@ namespace SimpleCore.Services.Identity
 
             // If identity provided doesn't exist, create one.
             if (identityProvidedEntity == null)
+            {
                 await _identityProvidedService.Insert(identityProvided);
+                identityProvidedEntity = identityProvided;
+            }
 
             // If user doesn't exist for identity provided, create one.
             TIdentity? identity;
@@ -41,6 +44,9 @@ namespace SimpleCore.Services.Identity
                 };
 
                 await Insert(identity);
+                identityProvidedEntity.UserId = identity.Id!.ToString();
+
+                await _identityProvidedService.Update(identityProvidedEntity);
             }
             else
             {

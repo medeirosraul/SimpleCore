@@ -6,7 +6,7 @@ namespace SimpleCore.Identity
     {
         public string Sub { get; set; }
         public string Issuer { get; set; }
-        public TKey? UserId { get; set; }
+        public string? UserId { get; set; }
 
         public IdentityProvided(string sub, string issuer)
         {

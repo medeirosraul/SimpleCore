@@ -23,6 +23,7 @@ namespace SimpleCore
             where TIdentity : Identity<TKey>, new()
         {
             services.AddScoped<IIdentityService<TIdentity, TKey>, IdentityService<TIdentity, TKey>>();
+            services.AddScoped<IIdentityProvidedService<TKey>, IdentityProvidedService<TKey>>();
             services.AddScoped<IIdentityContext<TIdentity, TKey>, IdentityContext<TIdentity, TKey>>();
 
             return services;
