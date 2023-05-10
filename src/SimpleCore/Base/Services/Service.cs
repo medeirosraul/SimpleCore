@@ -104,10 +104,6 @@ public class Service<TEntity> : IService<TEntity>
 
     public virtual Task Insert(TEntity entity)
     {
-        // Stamp
-        entity.CreatedAt = DateTime.Now;
-        entity.ModifiedAt = DateTime.Now;
-
         // Insert
         Context.Add(entity);
 
