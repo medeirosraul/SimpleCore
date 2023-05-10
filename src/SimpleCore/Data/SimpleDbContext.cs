@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using SimpleCore.Entities;
-using SimpleCore.Identity;
+using SimpleCore.Base.Entities;
+using SimpleCore.Identities.Entities;
 
 namespace SimpleCore.Data
 {
-    public class SimpleDbContext<TKey> : DbContext
+    public class SimpleDbContext : DbContext
     {
         private IDbContextTransaction? _transaction;
 
@@ -18,21 +18,21 @@ namespace SimpleCore.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             // Ignore base entity
-            builder.Ignore<Entity<TKey>>();
-            builder.Ignore<UserEntity<TKey>>();
-            builder.Ignore<TenantEntity<TKey>>();
+            builder.Ignore<Entity>();
+            builder.Ignore<UserEntity>();
+            builder.Ignore<TenantEntity>();
 
             // Base
             base.OnModelCreating(builder);
         }
 
-        protected void BuildIdentity<TIdentity>(ModelBuilder builder)
-            where TIdentity : Identity<TKey>
+        protected virtual void BuildIdentity<TIdentity>(ModelBuilder builder)
+            where TIdentity : Identity
         {
             builder.Entity<TIdentity>()
                 .ToTable("Identity");
 
-            builder.Entity<IdentityProvided<TKey>>()
+            builder.Entity<IdentityProvided>()
                 .ToTable("IdentityProvided");
         }
 

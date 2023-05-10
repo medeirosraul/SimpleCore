@@ -1,24 +1,24 @@
 ﻿using Microsoft.AspNetCore.Http;
-using SimpleCore.Abstractions.Identity;
-using SimpleCore.Identity;
+using SimpleCore.Identities.Entities;
+using SimpleCore.Identities.Services;
 using System.Security.Claims;
 
 namespace SimpleCore.Contexts
 {
-    public interface IIdentityContext<TIdentity, TKey>
-        where TIdentity : Identity<TKey>, new()
+    public interface IIdentityContext<TIdentity>
+        where TIdentity : Identity, new()
     {
         Task<TIdentity> GetUserInfo();
         Task<TIdentity> UpdateUserInfo(string userName, string email);
     }
 
-    public class IdentityContext<TIdentity, TKey> : IIdentityContext<TIdentity, TKey>
-        where TIdentity : Identity<TKey>, new()
+    public class IdentityContext<TIdentity> : IIdentityContext<TIdentity>
+        where TIdentity : Identity, new()
     {
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IIdentityService<TIdentity, TKey> _identityService;
+        private readonly IIdentityService<TIdentity> _identityService;
 
-        public IdentityContext(IHttpContextAccessor contextAccessor, IIdentityService<TIdentity, TKey> identityService)
+        public IdentityContext(IHttpContextAccessor contextAccessor, IIdentityService<TIdentity> identityService)
         {
             _contextAccessor = contextAccessor;
             _identityService = identityService;
@@ -30,20 +30,12 @@ namespace SimpleCore.Contexts
                 throw new Exception("Http context is null.");
 
             // Get user from HTTP Context
-            var httpContextIdentity = _contextAccessor.HttpContext.User;
+            var user = _contextAccessor.HttpContext.User;
 
-            if (httpContextIdentity == null)
+            if (user == null)
                 throw new Exception("No identity provided.");
 
-            var sub = httpContextIdentity.FindFirstValue(ClaimTypes.NameIdentifier);
-            var issuer = httpContextIdentity.FindFirstValue("iss");
-
-            if (string.IsNullOrEmpty(sub) || string.IsNullOrEmpty(issuer))
-                throw new Exception("Invalid identity provided.");
-
-            var identityProvided = new IdentityProvided<TKey>(sub, issuer);
-
-            return _identityService.GetIdentityForIdentityProvided(identityProvided);
+            return _identityService.GetIdentityForHttpContextUser(user);
         }
 
         public async Task<TIdentity> UpdateUserInfo(string userName, string email)

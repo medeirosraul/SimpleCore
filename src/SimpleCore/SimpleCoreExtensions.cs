@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SimpleCore.Abstractions;
-using SimpleCore.Abstractions.Identity;
+using Microsoft.Extensions.Logging;
+using SimpleCore.Base.Services;
 using SimpleCore.Contexts;
 using SimpleCore.Data;
-using SimpleCore.Data.Options;
-using SimpleCore.Identity;
-using SimpleCore.Services;
-using SimpleCore.Services.Identity;
+using SimpleCore.Identities.Entities;
+using SimpleCore.Identities.Services;
 
 namespace SimpleCore
 {
@@ -14,25 +12,42 @@ namespace SimpleCore
     {
         public static IServiceCollection AddSimpleCore(this IServiceCollection services)
         {
-            services.AddScoped(typeof(IService<,>), typeof(Service<,>));
+            services.AddScoped(typeof(IService<>), typeof(Service<>));
 
             return services;
         }
 
-        public static IServiceCollection AddSimpleCoreIdentity<TIdentity, TKey>(this IServiceCollection services)
-            where TIdentity : Identity<TKey>, new()
+        public static IServiceCollection AddSimpleCoreIdentity<TIdentity>(this IServiceCollection services)
+            where TIdentity : Identity, new()
         {
-            services.AddScoped<IIdentityService<TIdentity, TKey>, IdentityService<TIdentity, TKey>>();
-            services.AddScoped<IIdentityProvidedService<TKey>, IdentityProvidedService<TKey>>();
-            services.AddScoped<IIdentityContext<TIdentity, TKey>, IdentityContext<TIdentity, TKey>>();
+            services.AddScoped<IIdentityService<TIdentity>, IdentityService<TIdentity>>();
+            services.AddScoped<IIdentityProvidedService, IdentityProvidedService>();
+            services.AddScoped<IIdentityContext<TIdentity>, IdentityContext<TIdentity>>();
 
             return services;
         }
 
-        public static IServiceCollection AddSimpleMongo<TKey>(this IServiceCollection services, Action<SimpleMongoOptions<TKey>> options)
+        /// <summary>
+        /// Add services for SimpleCore Identity.
+        /// </summary>
+        /// <typeparam name="TIdentity">Identity type.</typeparam>
+        /// <typeparam name="TKey">Key type.</typeparam>
+        /// <typeparam name="TContext">DbContext Type.</typeparam>
+        public static IServiceCollection AddSimpleCoreIdentity<TIdentity, TContext>(this IServiceCollection services)
+            where TIdentity : Identity, new()
+            where TContext : SimpleDbContext
         {
-            services.Configure(options);
-            services.AddSingleton<SimpleMongoContext<TKey>>();
+            services.AddScoped<IIdentityContext<TIdentity>, IdentityContext<TIdentity>>();
+
+            services.AddScoped<IIdentityProvidedService, IdentityProvidedService>(s =>
+            {
+                return new IdentityProvidedService(s.GetRequiredService<TContext>());
+            });
+
+            services.AddScoped<IIdentityService<TIdentity>, IdentityService<TIdentity>>(s =>
+            {
+                return new IdentityService<TIdentity>(s.GetRequiredService<TContext>(), s.GetRequiredService<ILogger<IdentityService<TIdentity>>>(), s.GetRequiredService<IIdentityProvidedService>());
+            });
 
             return services;
         }
